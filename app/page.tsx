@@ -17,6 +17,12 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { toast } from "sonner";
 import { BalanceChange } from "@mysten/sui/client";
 import {
@@ -35,6 +41,13 @@ export default function Page() {
   /* Account information */
   const [balance, setBalance] = useState<number>(0);
   const [accountLoading, setAccountLoading] = useState<boolean>(true);
+
+  /* Transfer state */
+  const [isTransferDialogOpen, setIsTransferDialogOpen] =
+    useState<boolean>(false);
+  const [recipientAddress, setRecipientAddress] = useState<string>("");
+  const [transferAmount, setTransferAmount] = useState<string>("");
+  const [transferLoading, setTransferLoading] = useState<boolean>(false);
 
   /* Send Red Envelope state */
   const [totalAmount, setTotalAmount] = useState<string>("");
@@ -136,6 +149,80 @@ export default function Page() {
       },
     });
   };
+  // 添加 transferSui 函数
+  async function transferSui() {
+    const promise = async () => {
+      track("Transfer SUI");
+
+      setTransferLoading(true);
+
+      // Validate the transfer amount
+      const parsedAmount = parseFloat(transferAmount);
+      if (isNaN(parsedAmount) || parsedAmount <= 0) {
+        setTransferLoading(false);
+        throw new Error("无效的金额");
+      }
+
+      if (!recipientAddress) {
+        setTransferLoading(false);
+        throw new Error("请输入接收者地址");
+      }
+
+      // Get the keypair for the current user.
+      const keypair = await enokiFlow.getKeypair({ network: "testnet" });
+
+      // Create a new transaction block
+      const txb = new Transaction();
+
+      // Add some transactions to the block...
+      const [coin] = txb.splitCoins(txb.gas, [
+        txb.pure.u64(parsedAmount * 10 ** 9),
+      ]);
+      txb.transferObjects([coin], txb.pure.address(recipientAddress));
+
+      // Sign and execute the transaction block, using the Enoki keypair
+      const res = await client.signAndExecuteTransaction({
+        signer: keypair,
+        transaction: txb,
+        options: {
+          showEffects: true,
+          showBalanceChanges: true,
+        },
+      });
+
+      setTransferLoading(false);
+
+      if (res.effects?.status.status !== "success") {
+        throw new Error("转账失败: " + res.effects?.status.error);
+      }
+
+      return res;
+    };
+
+    toast.promise(promise, {
+      loading: "正在转账...",
+      success: (data) => {
+        // 更新余额
+        getAccountInfo();
+
+        return (
+          <span className="flex flex-row items-center gap-2">
+            转账成功！{" "}
+            <a
+              href={`https://suiscan.xyz/testnet/tx/${data.digest}`}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <ExternalLink width={12} />
+            </a>
+          </span>
+        );
+      },
+      error: (error) => {
+        return error.message;
+      },
+    });
+  }
 
   /**
    * Send Red Envelope
@@ -310,7 +397,7 @@ export default function Page() {
     return (
       <div className="container mx-auto p-4">
         <h1 className="text-4xl font-bold text-center mb-8">SUI 红包</h1>
-        
+
         <Popover>
           <PopoverTrigger className="absolute top-4 right-4" asChild>
             <div>
@@ -350,7 +437,7 @@ export default function Page() {
                         </span>
                       </div>
                       <div className="flex items-center ml-2">
-                        <Button
+                        {/* <Button
                           variant="ghost"
                           size="sm"
                           onClick={() => {
@@ -358,8 +445,8 @@ export default function Page() {
                             toast.success("已复制地址");
                           }}
                         >
-                          {/* <Copy size={16} /> */}
-                        </Button>
+                          <Copy size={16} />
+                        </Button> */}
                         <a
                           href={`https://suiscan.xyz/testnet/account/${suiAddress}`}
                           target="_blank"
@@ -380,6 +467,14 @@ export default function Page() {
                 <Button variant={"outline"} size={"sm"} onClick={onRequestSui}>
                   申请 SUI
                 </Button>
+                {/* 新增转账按钮 */}
+                <Button
+                  variant={"outline"}
+                  size={"sm"}
+                  onClick={() => setIsTransferDialogOpen(true)}
+                >
+                  转账
+                </Button>
                 <Button
                   variant={"destructive"}
                   size={"sm"}
@@ -395,6 +490,50 @@ export default function Page() {
             </Card>
           </PopoverContent>
         </Popover>
+        {/* 转账弹窗 */}
+        <Dialog
+          open={isTransferDialogOpen}
+          onOpenChange={setIsTransferDialogOpen}
+        >
+          <DialogContent className="bg-white text-black">
+            <DialogHeader>
+              <DialogTitle>转账 SUI</DialogTitle>
+            </DialogHeader>
+            <div className="flex flex-col gap-4">
+              <div>
+                <Label htmlFor="recipientAddress">接收者地址</Label>
+                <Input
+                  type="text"
+                  id="recipientAddress"
+                  placeholder="请输入接收者地址"
+                  value={recipientAddress}
+                  onChange={(e) => setRecipientAddress(e.target.value)}
+                  className="border-gray-300"
+                />
+              </div>
+              <div>
+                <Label htmlFor="transferAmount">转账金额 (SUI)</Label>
+                <Input
+                  type="number"
+                  id="transferAmount"
+                  placeholder="请输入转账金额"
+                  value={transferAmount}
+                  onChange={(e) => setTransferAmount(e.target.value)}
+                  className="border-gray-300"
+                />
+              </div>
+            </div>
+            <div className="flex justify-end mt-4">
+              <Button
+                onClick={transferSui}
+                disabled={transferLoading}
+                className="bg-gradient-to-r from-blue-500 to-green-500 hover:from-blue-600 hover:to-green-600"
+              >
+                确认转账
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
         <div className="flex flex-col md:flex-row gap-8 mt-8">
           {/* 发红包功能 */}
           <Card className="w-full md:w-1/2">
