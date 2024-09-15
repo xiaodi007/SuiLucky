@@ -1,178 +1,114 @@
-# Enoki Example App
-This is a simple, one-page app that integrates with Mysten Lab's Enoki. The live testnet demo can be foud [here](https://enoki-example-app.vercel.app).
+好的，我可以为您的项目生成一个 README 文件，以下是示例：
 
-## Table of Contents
-- [Enoki Example App](#enoki-example-app)
-  - [Table of Contents](#table-of-contents)
-  - [Enoki Dev Portal Setup](#enoki-dev-portal-setup)
-    - [Setting up Enoki API keys](#setting-up-enoki-api-keys)
-    - [Setting up your Enoki Auth Provider](#setting-up-your-enoki-auth-provider)
-    - [Setting up Enoki Sponsor Transactions](#setting-up-enoki-sponsor-transactions)
-  - [Getting your Google Client ID](#getting-your-google-client-id)
-  - [Running the app locally](#running-the-app-locally)
+---
 
-## Enoki Dev Portal Setup
-### Setting up Enoki API keys
-In order to use Enoki, you need to sign into the Enoki Dev Portal and set up your new project. Below are the steps required for this. 
+# SUI 红包应用
 
-1. Navigate to the [Enoki Dev Portal](https://portal.enoki.mystenlabs.com) and sign in with the email you want to manage your project with. 
+这是一个基于 **Sui 区块链** 的 Web3 红包应用，允许用户发送和领取红包。应用使用了 **Next.js** 和 **React** 构建，集成了 **Enoki** 的 zkLogin 流程。
 
-    Note, that during your first time signing in, you'll be asked to provide some info to help Mysten Labs keep informed about who is using Enoki. 
+## 功能特性
 
-    The portal should look something like this when you successfully log on: 
-    ![Empty Portal](images/empty-dev-portal.png)
+- **发送红包**：用户可以输入总金额和红包个数，生成一个红包 ID，与他人分享。
+- **领取红包**：用户可以通过输入红包 ID 来领取红包，并获得相应的金额。
+- **账户信息**：查看当前用户的 SUI 地址和余额，支持一键复制和跳转到区块链浏览器查看详情。
+- **申请 SUI**：在测试网络上申请 SUI 代币，方便测试使用。
 
-2. Click `+ Create your first App` and enter the name of your app. 
+## 技术栈
 
-    You should see your project's page on the portal now:
-    ![Empty Project](images/empty-project.png)
+- **前端框架**：Next.js、React
+- **区块链交互**：Sui、@mysten/sui.js
+- **身份认证**：Enoki zkLogin
+- **样式库**：Tailwind CSS
+- **UI 组件**：shadcn/ui
 
-3. Click `+ Create new` under `New API Key`. 
+## 环境要求
 
-    You will be given a prompt that looks like this: 
-    ![New API Key Prompt](images/api-key-prompt.png)
+- **Node.js** 18.x
+- **npm** 或 **yarn**
+- 访问 **Sui 测试网络**
 
-    You'll need to select the following: 
+## 本地开发
 
-    - API key type: 
-      - [ ] Public: Select this type if you plan on using this key in a client-side app
-      - [ ] Private: Select this type if you plan on using this key in a private backend server
+### 克隆仓库
 
-    - Enabled networks: The Sui networks that this api key will work on
-      - [ ] Devnet
-      - [ ] Testnet
-      - [ ] Mainnet - Note this will only work for published apps
+```bash
+git clone https://github.com/xiaodi007/SuiLucky.git
+cd ./SuiLucky
+```
 
-    - Enabled features: The features that this api key will support
-      - [ ] zkLogin
-      - [ ] Sponsored transactions
+### 安装依赖
 
-    When creating a key for this demo app, select: 
-    - [x] Public
-    - [x] Testnet
-    - [x] zkLogin
-    - [x] Sponsored transactions
+```bash
+yarn install
 
-    Your api key should look something like this: 
-    ![New API Key](images/new-api-key.png)
+```
 
-4. Now you have your Enoki API key! 
-    
-    To use the key in this demo, make a copy of [.env.template](./.env.template) named `.env.local` and paste in the key into `ENOKI_PUB_KEY`. It should look something like this: 
-
-    ```
-    ENOKI_PUB_KEY=enoki_public_1646656193035707ff4ef3aecafb455e
-    GOOGLE_CLIENT_ID=
-    ```
-
-### Setting up your Enoki Auth Provider
-To use the *zkLogin* feature, you will need to connect your auth provider to the Enoki Dev Portal. 
-
-1. Navigate to the `Auth Providers` section of your Enoki project. 
-
-    The Auth Providers section is where you can add and manage your app's auth providers. Currently, Enoki supports: 
-
-    - Google
-    - Twitch
-    - Facebook
-    - Apple
-
-    It should look like this: 
-    ![Empty Auth Provider Section](images/empty-auth-provider-page.png)
-
-2. Click `+ New Auth Provider`
-
-    You will be given a prompt that looks like this: 
-    ![New Auth Provider Prompt](images/auth-provider-prompt.png)
-
-    You'll need to select/input the following: 
-
-    - Auth provider: 
-      - [ ] Google
-      - [ ] Facebook
-      - [ ] Twitch
-      - [ ] Apple
-
-    - Client ID: The client given by your desired auth provider
-
-    When creating a key for this demo app, select `Google` and paste your google client id. Follow the [instructions](#getting-your-google-client-id) to get your client id from Google.
-
-    Your auth provider should look something like this: 
-    ![New Auth Provider](images/new-auth-provider.png)
-
-3. Now you have your Enoki Auth Provider! 
-
-    To use the auth provider in this demo, make a copy of [.env.template](./.env.template) named `.env.local` and paste in the client id into `GOOGLE_CLIENT_ID`. It should look something like this: 
-
-    ```
-    ENOKI_PUB_KEY=enoki_public_1646656193035707ff4ef3aecafb455e
-    GOOGLE_CLIENT_ID=1234567890
-    ```
-
-    You can also add more auth providers by repeating the steps above. 
-
-    Your `.env.local` file should look something like this: 
-    ```
-    ENOKI_PUB_KEY=enoki_public_1646656193035707ff4ef3aecafb455e
-    GOOGLE_CLIENT_ID=1234567890
-    ```
-
-    Note that you can add more auth providers by repeating the steps above.
-
-4. You have successfully connected your auth provider to Enoki! 
-
-    Reference this demo code as an example of implementing the Enoki auth flow in your app.
-
-### Setting up Enoki Sponsor Transactions
-In the Enoki Dev Portal, you can set up *Sponsored Transactions* by adding addresses and move targets that are supported. 
-
-1. Navigate to the `Sponsored Transactions` section of your Enoki project. 
-
-    The Sponsored Transactions section is where you can add and manage the addresses and move targets that you want to be supported in sponsored transactions. 
-
-    It should look like this: 
-    ![Empty Sponsored Transaction Section](images/empty-sponsored-transaction-page.png)
-
-2. Add the addresses and move call targets you want to be supported. 
-
-    Any allowed addresses are senders that can use sponsored transactions. Any allowed move call targets are functions operations that any of your users can use sponsored transactions for. 
-
-    In this demo, the target, `0x5794fff859ee70e28ec8a419f2a73830fb66bcaaaf76a68e41fcaf5e057d7bcc::global_counter::increment` is supported. This means that any users signed into the demo app can call this target and the transaction will be sponsored (meaning the user won't have to pay the gas for this transaction).
-
-    Your allow list should look something like this: 
-    ![New Sponsored Transaction allow list](images/new-sponsored-transaction.png)
-
-3. You have successfully set up your Enoki Sponsored Transaction allow list! 
-
-    Reference this demo code as an example to implementing sponsored transactions in your app.
+### 配置Enoki API keys 和 Google Client ID
 
 
-## Getting your Google Client ID
-You will need to set up a Google Auth API key to use the Google Sign-In feature in this demo app.
-
-1. Navigate to the [Google Developers Console](https://console.cloud.google.com/apis/credentials).
-2. Click `+ Create Credentials` and select `OAuth client ID`.
-
-    ![Create OAuth client ID](images/create-credential.png)
-
-3. Select `Web application` as the application type.
-4. Add `http://localhost:3000/` to the `Authorized redirect URIs`.
-
-    Your setup should look something like this:
-    ![OAuth setup](images/authorized-url.png)
-5. Click `Create` and copy the client id.
-
-    Your OAuth client info should look something like this:
-    ![OAuth created](images/OAuth-created.png)
-
-6. You can now paste this client id into the `.env.local` file as described in the [Setting up your Enoki Auth Provider](#setting-up-your-enoki-auth-provider) section.
-   
+[参考](https://github.com/sui-foundation/enoki-example-app)
 
 
-## Running the app locally
-Before running the app, following the setup instructions above to set up your [Enoki API keys](#setting-up-enoki-api-keys), [Auth Providers](#setting-up-your-enoki-auth-provider), and [Sponsored Transactions](#setting-up-enoki-sponsor-transactions).
+### 配置环境变量
 
-1. Clone the repository and navigate to the root directory.
-2. Install the dependencies by running `yarn install`.
-3. Ensure the `.env.local` file is set up with your Enoki API key and Google Auth Provider client id.
-4. Start the app by running `yarn dev`.
+在项目根目录下创建一个 `.env.local` 文件，并添加以下内容：
+
+```env
+NEXT_PUBLIC_GOOGLE_CLIENT_ID=你的Google客户端ID
+# 添加其他需要的环境变量
+```
+
+**注意**：请确保不要将 `.env.local` 文件提交到版本控制系统中。
+
+### 运行项目
+
+```bash
+yarn dev
+```
+
+项目将在 `http://localhost:3000` 上运行。
+
+
+## 使用指南
+
+### 登录
+
+- 访问应用地址，点击 **“使用 Google 登录”** 按钮，通过 Enoki zkLogin 进行身份验证。
+
+### 发红包
+
+1. 登录后，在 **“发红包”** 卡片中：
+   - 输入 **总金额（SUI）**。
+   - 输入 **红包个数**。
+   - 点击 **“发红包”** 按钮。
+2. 生成的 **红包 ID** 将显示在下方，可以点击 **“复制”** 按钮进行复制。
+3. 将 **红包 ID** 分享给他人，邀请他们领取红包。
+
+### 抢红包
+
+1. 在 **“抢红包”** 卡片中：
+   - 输入收到的 **红包 ID**。
+   - 点击 **“抢红包”** 按钮。
+2. 如果领取成功，将显示领取的金额对象 ID，可点击 **“复制”** 按钮进行复制。
+
+### 查看账户信息
+
+- 点击导航栏右上角的账户信息，可以查看您的 **SUI 地址** 和 **余额**，并支持一键复制和跳转到区块链浏览器查看详情。
+
+### 申请 SUI
+
+- 如果余额不足，可以在账户信息中点击 **“申请 SUI”** 按钮，从测试网络水龙头获取 SUI。
+
+## 智能合约
+
+本项目依赖于在 **Sui 测试网络** 上部署的智能合约，包含以下函数：
+
+[合约仓库](https://github.com/move-cn/lucky/blob/main/lucky/sources/lucky.move)
+
+
+PACKAGE ID: 0x985e9a516e4dad0c671a176a09f160ca595c18a39a0254469281ed4526c2401f
+
+- `send`：用于创建红包。
+- `claim`：用于领取红包。
+
+

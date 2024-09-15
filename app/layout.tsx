@@ -23,7 +23,8 @@ export default function RootLayout({
   return (
     <html lang="en">
       <SuiClientProvider networks={networkConfig} defaultNetwork="testnet">
-        <EnokiFlowProvider apiKey={process.env.ENOKI_PUB_KEY!}>
+        <EnokiFlowProvider apiKey={process.env.NEXT_PUBLIC_ENOKI_PUB_KEY!}>
+        {/* <EnokiFlowProvider apiKey='enoki_public_11f2ef0dc9c84cc1ca735f3498a36097'> */}
           <body className={inter.className}>{children}</body>
           <Analytics />
           <Toaster closeButton  />

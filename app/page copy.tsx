@@ -5,7 +5,7 @@ import { Transaction } from "@mysten/sui/transactions";
 import { useSuiClient } from "@mysten/dapp-kit";
 import { useEnokiFlow, useZkLogin } from "@mysten/enoki/react";
 import { getFaucetHost, requestSuiFromFaucetV0 } from "@mysten/sui/faucet";
-import { ExternalLink, Github, LoaderCircle, Copy } from "lucide-react";
+import { ExternalLink, Github, LoaderCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -44,7 +44,6 @@ export default function Page() {
 
   /* Claim Red Envelope state */
   const [inputEnvelopeId, setInputEnvelopeId] = useState<string>("");
-  const [claimedObjectId, setClaimedObjectId] = useState<string>("");
   const [claimLoading, setClaimLoading] = useState<boolean>(false);
 
   /**
@@ -160,10 +159,12 @@ export default function Page() {
 
       // Get the keypair for the current user.
       const keypair = await enokiFlow.getKeypair({ network: "testnet" });
+      console.log(keypair)
 
       // Create a new transaction block
       const txb = new Transaction();
-      txb.setGasBudget(100000000);
+      txb.setGasBudget(100000000)
+      console.log(parsedAmount)
       const [coin] = txb.splitCoins(txb.gas, [
         txb.pure.u64(parsedAmount * 10 ** 9),
       ]);
@@ -248,13 +249,16 @@ export default function Page() {
 
       // Create a new transaction block
       const txb = new Transaction();
-      txb.setGasBudget(100000000);
+      txb.setGasBudget(100000000)
 
       // Replace with actual package ID and function
       txb.moveCall({
         target: `${process.env.NEXT_PUBLIC_PACKAGE_ID}::lucky::claim`,
         typeArguments: ["0x2::sui::SUI"],
-        arguments: [txb.object(inputEnvelopeId), txb.object("0x8")],
+        arguments: [
+          txb.object(inputEnvelopeId),
+          txb.object("0x8")
+        ],
       });
 
       // Sign and execute the transaction block
@@ -265,17 +269,13 @@ export default function Page() {
           showEffects: true,
         },
       });
+      console.log(res)
       setClaimLoading(false);
 
       if (res.effects?.status.status !== "success") {
         throw new Error("领取红包失败: " + res.effects?.status.error);
       }
 
-      // Get the claimed amount's object ID
-      const claimedId =
-        res.effects?.created?.[0]?.reference?.objectId || "未知";
-
-      setClaimedObjectId(claimedId);
       return res;
     };
 
@@ -301,16 +301,13 @@ export default function Page() {
       },
     });
   }
-  // Utility function to abbreviate IDs
-  const abbreviateId = (id: string) => {
-    return id.slice(0, 6) + "..." + id.slice(-4);
-  };
 
   if (suiAddress) {
     return (
       <div className="container mx-auto p-4">
-        <h1 className="text-4xl font-bold text-center mb-8">SUI 红包</h1>
-        
+        <h1 className="text-4xl font-bold text-center mb-8">
+          Web3 红包应用
+        </h1>
         <Popover>
           <PopoverTrigger className="absolute top-4 right-4" asChild>
             <div>
@@ -330,10 +327,12 @@ export default function Page() {
             </div>
           </PopoverTrigger>
           <PopoverContent>
-            <Card className="border-none shadow-none ">
+            <Card className="border-none shadow-none">
               <CardHeader>
                 <CardTitle>账户信息</CardTitle>
-                <CardDescription>查看您的账户信息。</CardDescription>
+                <CardDescription>
+                  查看您的账户信息。
+                </CardDescription>
               </CardHeader>
               <CardContent>
                 {accountLoading ? (
@@ -342,30 +341,19 @@ export default function Page() {
                   </div>
                 ) : (
                   <>
-                    <div className="flex flex-row items-center">
-                      <span className="mr-2">地址:</span>
-                      <div className="flex flex-row items-center flex-1">
-                        <span className="truncate">
-                          {abbreviateId(suiAddress)}
-                        </span>
-                      </div>
-                      <div className="flex items-center ml-2">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => {
-                            navigator.clipboard.writeText(suiAddress);
-                            toast.success("已复制地址");
-                          }}
-                        >
-                          {/* <Copy size={16} /> */}
-                        </Button>
+                    <div className="flex flex-row gap-1 items-center">
+                      <span>地址: </span>
+                      <div className="flex flex-row gap-1">
+                        <span>{`${suiAddress?.slice(
+                          0,
+                          5
+                        )}...${suiAddress?.slice(-5)}`}</span>
                         <a
                           href={`https://suiscan.xyz/testnet/account/${suiAddress}`}
                           target="_blank"
                           rel="noopener noreferrer"
                         >
-                          <ExternalLink width={16} />
+                          <ExternalLink width={12} />
                         </a>
                       </div>
                     </div>
@@ -377,7 +365,11 @@ export default function Page() {
                 )}
               </CardContent>
               <CardFooter className="flex flex-row gap-2 items-center justify-between">
-                <Button variant={"outline"} size={"sm"} onClick={onRequestSui}>
+                <Button
+                  variant={"outline"}
+                  size={"sm"}
+                  onClick={onRequestSui}
+                >
                   申请 SUI
                 </Button>
                 <Button
@@ -429,7 +421,7 @@ export default function Page() {
                 <div>
                   <Label>红包 ID：</Label>
                   <div className="flex items-center gap-2">
-                    <span>{abbreviateId(redEnvelopeId)}</span>
+                    <span>{redEnvelopeId}</span>
                     <Button
                       variant="link"
                       size="sm"
@@ -438,7 +430,7 @@ export default function Page() {
                         toast.success("已复制红包 ID");
                       }}
                     >
-                      <Copy size={16} />
+                      复制
                     </Button>
                   </div>
                 </div>
@@ -472,24 +464,6 @@ export default function Page() {
                   onChange={(e) => setInputEnvelopeId(e.target.value)}
                 />
               </div>
-              {claimedObjectId && (
-                <div>
-                  <Label>领取的金额对象 ID：</Label>
-                  <div className="flex items-center gap-2">
-                    <span>{abbreviateId(claimedObjectId)}</span>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => {
-                        navigator.clipboard.writeText(claimedObjectId);
-                        toast.success("已复制对象 ID");
-                      }}
-                    >
-                      <Copy size={16} />
-                    </Button>
-                  </div>
-                </div>
-              )}
             </CardContent>
             <CardFooter>
               <Button
@@ -522,7 +496,7 @@ export default function Page() {
         </Button>
       </a>
       <div className="text-center">
-        <h1 className="text-4xl font-bold m-4">SUI 红包</h1>
+        <h1 className="text-4xl font-bold m-4">Web3 红包应用</h1>
         <p className="text-md m-4 opacity-80 max-w-md">
           这是一个演示应用，展示了
           <a
@@ -533,7 +507,7 @@ export default function Page() {
           >
             Enoki
           </a>
-          的 zkLogin 流程。注意：此示例运行在
+          的 zkLogin 流程和赞助交易流程。注意：此示例运行在
           <span className="text-blue-600"> Sui 测试网络</span>
         </p>
       </div>
